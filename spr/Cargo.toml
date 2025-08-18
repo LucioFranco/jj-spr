@@ -14,7 +14,7 @@ name = "jj-spr"
 path = "src/main.rs"
 
 [dependencies]
-clap = { version = "^3.2.6", features = ["derive", "wrap_help"] }
+clap = { version = "^4.5.45", features = ["derive", "wrap_help"] }
 console = "^0.15.0"
 debug-ignore = "1.0.5"
 dialoguer = "^0.10.1"
