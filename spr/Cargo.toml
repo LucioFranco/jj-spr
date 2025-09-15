@@ -15,7 +15,7 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "^3.2.6", features = ["derive", "wrap_help"] }
-console = "^0.15.0"
+console = "^0.16.1"
 debug-ignore = "1.0.5"
 dialoguer = "^0.10.1"
 futures = "^0.3.21"
