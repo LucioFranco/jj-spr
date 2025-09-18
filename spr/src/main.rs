@@ -134,7 +134,12 @@ pub async fn spr() -> Result<()> {
     let repo = git2::Repository::discover(&current_dir)?;
 
     // Verify this is a Jujutsu repository by checking for .jj directory
-    let jj_dir = current_dir.join(".jj");
+    let repo_path = repo
+        .workdir()
+        .ok_or_else(|| Error::new("Repository must have a working directory".to_string()))?
+        .to_path_buf();
+
+    let jj_dir = repo_path.join(".jj");    
     if !jj_dir.exists() {
         return Err(Error::new(
             "This command requires a Jujutsu repository. Run 'jj git init --colocate' to create one.".to_string()
