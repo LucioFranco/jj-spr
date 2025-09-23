@@ -30,11 +30,10 @@ This will install the `jj-spr` binary to your `~/.cargo/bin` directory.
 
 To use `jj-spr` as a Jujutsu subcommand (enabling `jj spr <command>`), add the following to your Jujutsu configuration:
 
-#### Option 1: Using `jj util exec` (Recommended)
+#### Option 1: Using `jj config set` (Recommended)
 
 ```bash
-# Add to your shell profile (.bashrc, .zshrc, etc.)
-jj util exec --tool spr --name jj-spr
+jj config set --user aliases.spr '["util", "exec", "--", "jj-spr"]'
 ```
 
 #### Option 2: Manual Configuration
@@ -43,7 +42,7 @@ Add this to your Jujutsu config file (`~/.jjconfig.toml` or `.jj/repo/config.tom
 
 ```toml
 [aliases]
-spr = "util exec -- jj-spr"
+spr = ["util", "exec", "--", "jj-spr"]
 ```
 
 #### Option 3: Direct Binary Configuration
@@ -131,7 +130,7 @@ jj spr diff -r @  # Updates only PR #2
 
 Most commands support revision selection:
 ```bash
-jj spr diff -r @~1           # Specific revision
+jj spr diff -r @-            # Specific revision
 jj spr diff -r main..@       # Range of revisions (like --all)
 jj spr diff -a --base trunk  # All changes from trunk to current
 ```
