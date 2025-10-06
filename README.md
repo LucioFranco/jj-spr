@@ -19,7 +19,7 @@ This fork continues the sunshowers fork but tries to integrate fully with jujuts
 ### From Source
 
 ```bash
-git clone https://github.com/your-username/jj-spr.git
+git clone https://github.com/LucioFranco/jj-spr.git
 cd jj-spr
 cargo install --path spr
 ```
