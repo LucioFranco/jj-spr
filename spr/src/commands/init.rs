@@ -9,6 +9,7 @@ use indoc::formatdoc;
 use lazy_regex::regex;
 
 use crate::{
+    config::{AuthTokenSource, get_auth_token_with_source},
     error::{Error, Result, ResultExt},
     output::output,
 };
@@ -28,17 +29,40 @@ pub async fn init() -> Result<()> {
 
     console::Term::stdout().write_line("")?;
 
-    let github_auth_token = config
-        .get_string("spr.githubAuthToken")
-        .ok()
-        .and_then(|value| if value.is_empty() { None } else { Some(value) });
-
     output(
         "🔑",
-        &formatdoc!(
-            "Okay, let's get started. First we need a 'Personal Access Token' \
-             from GitHub. This will authorise spr to open/update/merge Pull \
-             Requests etc. on behalf of your GitHub user.
+        "Okay, let's get started. First we need to authenticate to GitHub.",
+    )?;
+
+    let github_auth_token = get_auth_token_with_source(&config).and_then(|value| {
+        if value.token().is_empty() {
+            None
+        } else {
+            Some(value)
+        }
+    });
+
+    let reuse_token = match github_auth_token {
+        None => true,
+        Some(AuthTokenSource::GitHubCLI(_)) => dialoguer::Confirm::new()
+            .with_prompt("Use the GitHub CLI to authenticate?")
+            .default(true)
+            .interact()?,
+        Some(AuthTokenSource::Config(_)) => dialoguer::Confirm::new()
+            .with_prompt("A personal access token is already configured. Use it?")
+            .default(true)
+            .interact()?,
+    };
+
+    let pat = if reuse_token {
+        github_auth_token.unwrap().token().to_owned()
+    } else {
+        output(
+            "  ",
+            &formatdoc!(
+                "We need a 'Personal Access Token' from GitHub. This will \
+             authorise spr to open/update/merge Pull Requests etc. on behalf of \
+             your GitHub user.
              You can get one by going to https://github.com/settings/tokens \
              and clicking on 'Generate new token'. The token needs the 'repo', \
              'user' and 'read:org' permissions, so please tick those three boxes \
@@ -46,34 +70,20 @@ pub async fn init() -> Result<()> {
              You might want to set the 'Expiration' to 'No expiration', as \
              otherwise you will have to repeat this procedure soon. Even \
              if the token does not expire, you can always revoke it in case \
-             you fear someone got hold of it.
-             {}",
-            if github_auth_token.is_some() {
-                "Actually, you have set up a PAT already. Just press enter to keep that one, or enter a new one!"
-            } else {
-                "Please paste in your PAT and press enter. (The input will not be displayed.)"
-            }
-        ),
-    )?;
+             you fear someone got hold of it."
+            ),
+        )?;
 
-    let pat = dialoguer::Password::new()
-        .with_prompt(if github_auth_token.is_some() {
-            "GitHub PAT (leave empty to keep using existing one)"
-        } else {
-            "GitHub Personal Access Token"
-        })
-        .allow_empty_password(github_auth_token.is_some())
-        .interact()?;
+        let pat = dialoguer::Password::new()
+            .with_prompt("GitHub Personal Access Token")
+            .allow_empty_password(github_auth_token.is_some())
+            .interact()?;
 
-    let pat = if pat.is_empty() {
-        github_auth_token.unwrap_or_default()
-    } else {
+        if pat.is_empty() {
+            return Err(Error::new("Cannot continue without an access token."));
+        }
         pat
     };
-
-    if pat.is_empty() {
-        return Err(Error::new("Cannot continue without an access token."));
-    }
 
     let octocrab = octocrab::OctocrabBuilder::new()
         .personal_token(pat.clone())
@@ -82,7 +92,9 @@ pub async fn init() -> Result<()> {
 
     output("👋", &formatdoc!("Hello {}!", github_user.login))?;
 
-    config.set_str("spr.githubAuthToken", &pat)?;
+    if !reuse_token {
+        config.set_str("spr.githubAuthToken", pat.as_str())?;
+    }
 
     // Name of remote
 

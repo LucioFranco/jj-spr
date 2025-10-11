@@ -12,49 +12,11 @@
 use clap::{Parser, Subcommand};
 use jj_spr::{
     commands,
+    config::{get_auth_token, get_config_bool, get_config_value},
     error::{Error, Result, ResultExt},
     output::output,
 };
 use reqwest::{self, header};
-
-// Helper function to get config value from jj first, then git
-fn get_config_value(key: &str, git_config: &git2::Config) -> Option<String> {
-    // Try jj config first
-    if let Ok(output) = std::process::Command::new("jj")
-        .args(["config", "get", key])
-        .output()
-        && output.status.success()
-        && let Ok(value) = String::from_utf8(output.stdout)
-    {
-        let trimmed = value.trim();
-        if !trimmed.is_empty() {
-            return Some(trimmed.to_string());
-        }
-    }
-
-    // Fall back to git config
-    git_config.get_string(key).ok()
-}
-
-fn get_config_bool(key: &str, git_config: &git2::Config) -> Option<bool> {
-    // Try jj config first
-    if let Ok(output) = std::process::Command::new("jj")
-        .args(["config", "get", key])
-        .output()
-        && output.status.success()
-        && let Ok(value) = String::from_utf8(output.stdout)
-    {
-        let trimmed = value.trim().to_lowercase();
-        if trimmed == "true" {
-            return Some(true);
-        } else if trimmed == "false" {
-            return Some(false);
-        }
-    }
-
-    // Fall back to git config
-    git_config.get_bool(key).ok()
-}
 
 #[derive(Parser, Debug)]
 #[clap(
@@ -202,7 +164,7 @@ pub async fn spr() -> Result<()> {
 
     let github_auth_token = match cli.github_auth_token {
         Some(v) => v,
-        None => get_config_value("spr.githubAuthToken", &git_config)
+        None => get_auth_token(&git_config)
             .ok_or_else(|| Error::new("GitHub auth token must be configured".to_string()))?,
     };
 

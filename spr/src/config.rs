@@ -122,6 +122,84 @@ impl Config {
     }
 }
 
+pub enum AuthTokenSource {
+    Config(String),
+    GitHubCLI(String),
+}
+
+impl AuthTokenSource {
+    pub fn token(&self) -> &String {
+        match self {
+            AuthTokenSource::Config(token) | AuthTokenSource::GitHubCLI(token) => token,
+        }
+    }
+}
+
+pub fn get_auth_token(git_config: &git2::Config) -> Option<String> {
+    get_auth_token_with_source(git_config).map(|v| v.token().to_owned())
+}
+
+pub fn get_auth_token_with_source(git_config: &git2::Config) -> Option<AuthTokenSource> {
+    // Prefer the configured token if it exists
+    if let Some(token) = get_config_value("spr.githubAuthToken", git_config) {
+        return Some(AuthTokenSource::Config(token));
+    }
+
+    // Try to get a token from the gh CLI
+    let output = std::process::Command::new("gh")
+        .args(["auth", "token"])
+        .stdout(std::process::Stdio::piped())
+        .output()
+        .ok()?;
+
+    if output.status.success() {
+        Some(AuthTokenSource::GitHubCLI(
+            String::from_utf8(output.stdout).ok()?.trim().to_owned(),
+        ))
+    } else {
+        None
+    }
+}
+
+// Helper function to get config value from jj first, then git
+pub fn get_config_value(key: &str, git_config: &git2::Config) -> Option<String> {
+    // Try jj config first
+    if let Ok(output) = std::process::Command::new("jj")
+        .args(["config", "get", key])
+        .output()
+        && output.status.success()
+        && let Ok(value) = String::from_utf8(output.stdout)
+    {
+        let trimmed = value.trim();
+        if !trimmed.is_empty() {
+            return Some(trimmed.to_string());
+        }
+    }
+
+    // Fall back to git config
+    git_config.get_string(key).ok()
+}
+
+pub fn get_config_bool(key: &str, git_config: &git2::Config) -> Option<bool> {
+    // Try jj config first
+    if let Ok(output) = std::process::Command::new("jj")
+        .args(["config", "get", key])
+        .output()
+        && output.status.success()
+        && let Ok(value) = String::from_utf8(output.stdout)
+    {
+        let trimmed = value.trim().to_lowercase();
+        if trimmed == "true" {
+            return Some(true);
+        } else if trimmed == "false" {
+            return Some(false);
+        }
+    }
+
+    // Fall back to git config
+    git_config.get_bool(key).ok()
+}
+
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
