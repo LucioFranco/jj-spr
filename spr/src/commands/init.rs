@@ -196,7 +196,9 @@ fn validate_branch_prefix(branch_prefix: &str) -> Result<()> {
         || branch_prefix.ends_with(".lock")
         || branch_prefix.starts_with('.')
     {
-        return Err(Error::new("Branch prefix cannot have slash-separated component beginning with a dot . or ending with the sequence .lock"));
+        return Err(Error::new(
+            "Branch prefix cannot have slash-separated component beginning with a dot . or ending with the sequence .lock",
+        ));
     }
 
     if branch_prefix.contains("..") {

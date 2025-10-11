@@ -23,14 +23,12 @@ fn get_config_value(key: &str, git_config: &git2::Config) -> Option<String> {
     if let Ok(output) = std::process::Command::new("jj")
         .args(["config", "get", key])
         .output()
+        && output.status.success()
+        && let Ok(value) = String::from_utf8(output.stdout)
     {
-        if output.status.success() {
-            if let Ok(value) = String::from_utf8(output.stdout) {
-                let trimmed = value.trim();
-                if !trimmed.is_empty() {
-                    return Some(trimmed.to_string());
-                }
-            }
+        let trimmed = value.trim();
+        if !trimmed.is_empty() {
+            return Some(trimmed.to_string());
         }
     }
 
@@ -43,16 +41,14 @@ fn get_config_bool(key: &str, git_config: &git2::Config) -> Option<bool> {
     if let Ok(output) = std::process::Command::new("jj")
         .args(["config", "get", key])
         .output()
+        && output.status.success()
+        && let Ok(value) = String::from_utf8(output.stdout)
     {
-        if output.status.success() {
-            if let Ok(value) = String::from_utf8(output.stdout) {
-                let trimmed = value.trim().to_lowercase();
-                if trimmed == "true" {
-                    return Some(true);
-                } else if trimmed == "false" {
-                    return Some(false);
-                }
-            }
+        let trimmed = value.trim().to_lowercase();
+        if trimmed == "true" {
+            return Some(true);
+        } else if trimmed == "false" {
+            return Some(false);
         }
     }
 
