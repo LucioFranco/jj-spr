@@ -162,8 +162,7 @@ fn test_stacked_changes_parent_immutability_bug() {
     // This assertion will fail with the current buggy implementation
     // After fixing, the parent change ID should remain the same when only processing the child
     assert_eq!(
-        parent_change_id_before,
-        parent_change_id_after,
+        parent_change_id_before, parent_change_id_after,
         "Parent change ID changed when only child revision was processed - this indicates the parent became immutable"
     );
 }
