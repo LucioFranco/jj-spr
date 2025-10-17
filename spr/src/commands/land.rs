@@ -34,8 +34,6 @@ pub async fn land(
     gh: &mut crate::github::GitHub,
     config: &crate::config::Config,
 ) -> Result<()> {
-    jj.check_no_uncommitted_changes()?;
-
     let revision = opts.revision.as_deref().unwrap_or("@");
     let prepared_commit = jj.get_prepared_commit_for_revision(config, revision)?;
 
