@@ -3,7 +3,7 @@
  * Tests only the functionality that definitely works without external dependencies
  */
 
-use std::process::Command;
+use std::{fs::create_dir, process::Command};
 use tempfile::tempdir;
 
 fn run_jj_spr(args: &[&str], working_dir: Option<&std::path::Path>) -> std::process::Output {
@@ -185,6 +185,21 @@ fn test_accepts_jujutsu_repository() {
     );
 
     // Should NOT fail due to repository detection
+    assert!(
+        !all_output.contains("This command requires a Jujutsu repository"),
+        "Should accept jujutsu repository"
+    );
+
+    // Ensure running from a subdirectory works as well
+    let subdir = repo_path.join("foo");
+    create_dir(&subdir).unwrap();
+    let output = run_jj_spr(&["format"], Some(&subdir));
+    let all_output = format!(
+        "{}{}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
     assert!(
         !all_output.contains("This command requires a Jujutsu repository"),
         "Should accept jujutsu repository"

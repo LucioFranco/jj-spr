@@ -370,5 +370,7 @@ fn test_directly_based_on_master_logic_fix() {
         "New logic should correctly return false for stacked child"
     );
 
-    println!("Test passed: Fixed logic correctly identifies stacked commits as not directly based on master");
+    println!(
+        "Test passed: Fixed logic correctly identifies stacked commits as not directly based on master"
+    );
 }
