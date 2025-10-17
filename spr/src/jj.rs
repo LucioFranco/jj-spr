@@ -14,7 +14,7 @@ use std::{
 use crate::{
     config::Config,
     error::{Error, Result, ResultExt},
-    message::{build_commit_message, parse_message, MessageSection, MessageSectionsMap},
+    message::{MessageSection, MessageSectionsMap, build_commit_message, parse_message},
 };
 use git2::Oid;
 
