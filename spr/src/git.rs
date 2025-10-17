@@ -16,7 +16,7 @@ use crate::{
     config::Config,
     error::{Error, Result, ResultExt},
     github::GitHubBranch,
-    message::{build_commit_message, parse_message, MessageSection, MessageSectionsMap},
+    message::{MessageSection, MessageSectionsMap, build_commit_message, parse_message},
     utils::run_command,
 };
 use debug_ignore::DebugIgnore;
@@ -67,7 +67,7 @@ impl Git {
         })
     }
 
-    pub(crate) fn lock_repo(&self) -> std::sync::MutexGuard<GitRepo> {
+    pub(crate) fn lock_repo(&self) -> std::sync::MutexGuard<'_, GitRepo> {
         self.repo.lock().expect("poisoned mutex")
     }
 
@@ -165,12 +165,10 @@ impl Git {
             }
         }
 
-        if updating {
-            if let Some(oid) = parent_oid {
-                repo.find_reference("HEAD")?
-                    .resolve()?
-                    .set_target(oid, "spr updated commit messages")?;
-            }
+        if updating && let Some(oid) = parent_oid {
+            repo.find_reference("HEAD")?
+                .resolve()?
+                .set_target(oid, "spr updated commit messages")?;
         }
 
         Ok(())
@@ -537,7 +535,7 @@ impl GitRepo {
         })
     }
 
-    fn head(&self) -> Result<git2::Reference> {
+    fn head(&self) -> Result<git2::Reference<'_>> {
         Ok(self.repo.head()?)
     }
 
@@ -550,15 +548,15 @@ impl GitRepo {
         Ok(self.repo.signature()?)
     }
 
-    fn revwalk(&self) -> Result<git2::Revwalk> {
+    fn revwalk(&self) -> Result<git2::Revwalk<'_>> {
         Ok(self.repo.revwalk()?)
     }
 
-    pub(crate) fn find_commit(&self, oid: Oid) -> Result<git2::Commit> {
+    pub(crate) fn find_commit(&self, oid: Oid) -> Result<git2::Commit<'_>> {
         Ok(self.repo.find_commit(oid)?)
     }
 
-    fn find_tree(&self, oid: Oid) -> Result<git2::Tree> {
+    fn find_tree(&self, oid: Oid) -> Result<git2::Tree<'_>> {
         Ok(self.repo.find_tree(oid)?)
     }
 
@@ -567,11 +565,11 @@ impl GitRepo {
         Ok(self.repo.merge_base(a, b)?)
     }
 
-    fn references(&self) -> Result<git2::References> {
+    fn references(&self) -> Result<git2::References<'_>> {
         Ok(self.repo.references()?)
     }
 
-    fn find_reference(&self, name: &str) -> Result<git2::Reference> {
+    fn find_reference(&self, name: &str) -> Result<git2::Reference<'_>> {
         Ok(self.repo.find_reference(name)?)
     }
 
@@ -621,7 +619,7 @@ impl GitRepo {
         &self,
         name: &str,
         target: &git2::Commit<'_>,
-    ) -> Result<git2::Branch> {
+    ) -> Result<git2::Branch<'_>> {
         Ok(self.repo.branch(name, target, true)?)
     }
 
@@ -1237,9 +1235,11 @@ mod tests {
                         "Should get exactly one commit for change ID"
                     );
                     // Verify the commit message was parsed correctly
-                    assert!(commits[0]
-                        .message
-                        .contains_key(&crate::message::MessageSection::Title));
+                    assert!(
+                        commits[0]
+                            .message
+                            .contains_key(&crate::message::MessageSection::Title)
+                    );
                 }
                 Err(e) => {
                     // Change ID resolution might fail if the format changed, but that's OK

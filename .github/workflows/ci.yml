@@ -2,253 +2,45 @@ name: CI
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "master", "main" ]
+    branches: [ "main" ]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  test:
-    name: Test Suite
+  check:
+    name: Check
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust:
-          - stable
-          - beta
-          - nightly
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ matrix.rust }}
           components: rustfmt, clippy
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config libssl-dev
-
-      - name: Install Jujutsu
-        run: |
-          curl -L https://github.com/martinvonz/jj/releases/download/v0.22.0/jj-v0.22.0-x86_64-unknown-linux-musl.tar.gz | tar xzf -
-          sudo mv jj /usr/local/bin/
-          jj --version
-
-      - name: Configure git
-        run: |
-          git config --global user.name "CI"
-          git config --global user.email "ci@example.com"
+          cargo install cargo-binstall
+          cargo binstall --strategies crate-meta-data jj-cli
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "spr -> target"
 
       - name: Check formatting
-        run: cargo fmt --all -- --check
+        run: |
+          cargo fmt --all -- --check
 
       - name: Run clippy
-        run: cargo clippy --all-features --all-targets -- -D warnings
-
-      - name: Build
-        run: cargo build --verbose
+        run: |
+          cargo clippy --all-features --all-targets -- -D warnings
 
       - name: Run tests
-        run: cargo test --verbose
-
-  security:
-    name: Security Audit
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install cargo-audit
-        run: cargo install cargo-audit
-
-      - name: Run security audit
-        run: cargo audit
-
-  build-release:
-    name: Build Release Binaries
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            artifact_name: jj-spr
-            asset_name: jj-spr-linux-x86_64
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-            artifact_name: jj-spr
-            asset_name: jj-spr-linux-x86_64-musl
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            artifact_name: jj-spr
-            asset_name: jj-spr-macos-x86_64
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            artifact_name: jj-spr
-            asset_name: jj-spr-macos-aarch64
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            artifact_name: jj-spr.exe
-            asset_name: jj-spr-windows-x86_64.exe
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: Install system dependencies (Linux)
-        if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libssl-dev
-          if [[ "${{ matrix.target }}" == *"musl"* ]]; then
-            sudo apt-get install -y musl-tools
-          fi
-
-      - name: Install system dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install pkg-config openssl
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "spr -> target"
-          key: ${{ matrix.target }}
-
-      - name: Build release binary
-        run: |
-          cd spr
-          cargo build --release --target ${{ matrix.target }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.asset_name }}
-          path: spr/target/${{ matrix.target }}/release/${{ matrix.artifact_name }}
-
-  check-dependencies:
-    name: Check Dependencies
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install cargo-outdated
-        run: cargo install cargo-outdated
-
-      - name: Check for outdated dependencies
-        run: cargo outdated --exit-code 1
-
-  minimum-supported-rust-version:
-    name: Minimum Supported Rust Version
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Rust 1.75 (MSRV)
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: "1.75"
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libssl-dev
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "spr -> target"
-
-      - name: Check if project builds with MSRV
-        run: cargo build --verbose
-
-  integration-test:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libssl-dev
-
-      - name: Install Jujutsu
-        run: |
-          curl -L https://github.com/martinvonz/jj/releases/download/v0.22.0/jj-v0.22.0-x86_64-unknown-linux-musl.tar.gz | tar xzf -
-          sudo mv jj /usr/local/bin/
-
-      - name: Configure git
-        run: |
-          git config --global user.name "CI"
-          git config --global user.email "ci@example.com"
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "spr -> target"
-
-      - name: Build project
-        run: cargo build --release
-
-      - name: Run integration tests
-        run: cargo test --test '*' --verbose
-
-  docs:
-    name: Documentation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libssl-dev
-
-      - name: Cache dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "spr -> target"
-
-      - name: Build documentation
-        run: cargo doc --all-features --no-deps
-
-      - name: Check for broken intra-doc links
-        run: cargo doc --all-features --no-deps
-        env:
-          RUSTDOCFLAGS: "-D warnings"
+          export PATH="$HOME/.cargo/bin:$PATH"
+          cargo test

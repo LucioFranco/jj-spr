@@ -1,6 +1,10 @@
 # Format and Update Commit Messages
 
-You should format your commit messages like this:
+In Jujutsu, commit messages (called "descriptions") follow a similar format to traditional Git commits, but with some jj-specific considerations.
+
+## Message Format
+
+You should format your change descriptions like this:
 
 ```
 One-line title
@@ -15,99 +19,150 @@ The test plan can also be several lines long.
 Reviewers: github-username-a, github-username-b
 ```
 
-The first line will be the title of the PR created by `spr diff`, and the rest of the lines except for the `Reviewers` line will be the PR description (i.e. the content of the first comment). The GitHub users named on the `Reviewers` line will be added to the PR as reviewers.
+The first line will be the title of the PR created by `jj-spr diff`, and the rest of the lines except for the `Reviewers` line will be the PR description (i.e. the content of the first comment). The GitHub users named on the `Reviewers` line will be added to the PR as reviewers.
 
-The `Test Plan` section is required to be present by default; `spr diff` will fail with an error if it isn't.
-You can disable this in the [configuration](../reference/configuration.md).
+The `Test Plan` section is required to be present by default; `jj-spr diff` will fail with an error if it isn't. You can disable this in the [configuration](../reference/configuration.md).
 
-## Updating the commit message
+## Working with Jujutsu Descriptions
 
-When you create a PR with `spr diff`, **the PR becomes the source of truth** for the title and description. When you land a commit with `spr land`, its commit message will be amended to match the PR's title and description, regardless of what is in your local repo.
+Set or update a change description:
+```shell
+# Interactive editor (recommended for multi-line descriptions)
+jj describe
 
-If you want to update the title or description, there are two ways to do so:
+# Or set directly from command line
+jj describe -m "Add feature
 
-- Modify the PR through GitHub's UI.
+This is a really cool feature!
 
-- Amend the commit message locally, then run `spr diff --update-message`. _Note that this does not update reviewers_; that must be done in the GitHub UI. If you amend the commit message but don't include the `--update-message` flag, you'll get an error.
-
-If you want to go the other way --- that is, make your local commit message match the PR's title and description --- you can run `spr amend`.
-
-## Further information
-
-### Fields added by spr
-
-At various stages of a commit's lifecycle, `spr` will add lines to the commit message:
-
-- After first creating a PR, `spr diff` will amend the commit message to include a line like this at the end:
-
-  ```
-  Pull Request: https://github.com/example/project/pull/123
-  ```
-
-  The presence or absence of this line is how `spr diff` knows whether a commit already has a PR created for it, and thus whether it should create a new PR or update an existing one.
-
-- `spr land` will amend the commit message to exactly match the title/description of the PR (just as `spr amend` does), as well as adding a line like this:
-  ```
-  Reviewed By: github-username-a
-  ```
-  This line names the GitHub users who approved the PR.
-
-### Example commit message lifecycle
-
-This is what a commit message should look like when you first commit it, before running `spr` at all:
-
+Test Plan: Run the test suite"
 ```
-Add feature
 
-This is a really cool feature! It's going to be great.
+View the current description:
+```shell
+jj log --no-graph -r @
+```
+
+## Updating the PR Title and Description
+
+When you create a PR with `jj-spr diff`, **the PR becomes the source of truth** for the title and description. When you land a change with `jj-spr land`, its description will be updated to match the PR's title and description.
+
+If you want to update the title or description, there are two ways:
+
+1. **Modify the PR through GitHub's UI** (simplest method)
+
+2. **Update locally and push**:
+   ```shell
+   # Edit the description
+   jj describe
+   
+   # Push the update to the PR
+   jj-spr diff --update-message
+   ```
+   
+   _Note: This does not update reviewers; that must be done in the GitHub UI._
+
+If you want to sync your local description with the PR's current title and description:
+```shell
+jj-spr amend
+```
+
+## Fields Added by jj-spr
+
+At various stages, `jj-spr` will add metadata to your change description:
+
+1. **After creating a PR**, `jj-spr diff` adds:
+   ```
+   Pull Request: https://github.com/example/project/pull/123
+   ```
+   This line tells `jj-spr` that a PR exists for this change.
+
+2. **After landing**, `jj-spr land` adds:
+   ```
+   Reviewed By: github-username-a
+   ```
+   This lists the GitHub users who approved the PR.
+
+## Example Lifecycle
+
+### Initial description:
+```
+Add user authentication
+
+Implements JWT-based authentication for the API.
 
 Test Plan:
-- Run tests
-- Use the feature
+- Unit tests for auth module
+- Integration tests for login flow
+- Manual testing with Postman
 
-Reviewers: user-a, coworker-b
+Reviewers: alice, bob
 ```
 
-After running `spr diff` to create a PR, the local commit message will be amended to include a link to the PR:
-
+### After `jj-spr diff`:
 ```
-Add feature
+Add user authentication
 
-This is a really cool feature! It's going to be great.
+Implements JWT-based authentication for the API.
 
 Test Plan:
-- Run tests
-- Use the feature
+- Unit tests for auth module  
+- Integration tests for login flow
+- Manual testing with Postman
 
-Reviewers: user-a, coworker-b
+Reviewers: alice, bob
 
-Pull Request: https://github.com/example/my-thing/pull/123
+Pull Request: https://github.com/example/api/pull/456
 ```
 
-In this state, running `spr diff` again will update PR 123.
-
-Running `spr land` will amend the commit message to have the exact title/description of PR 123, add the list of users who approved the PR, then land the commit. In this case, suppose only `coworker-b` approved:
-
+### After `jj-spr land` (with bob's approval):
 ```
-Add feature
+Add user authentication
 
-This is a really cool feature! It's going to be great.
+Implements JWT-based authentication for the API.
 
 Test Plan:
-- Run tests
-- Use the feature
+- Unit tests for auth module
+- Integration tests for login flow  
+- Manual testing with Postman
 
-Reviewers: user-a, coworker-b
+Reviewers: alice, bob
 
-Reviewed By: coworker-b
+Reviewed By: bob
 
-Pull Request: https://github.com/example/my-thing/pull/123
+Pull Request: https://github.com/example/api/pull/456
 ```
 
-### Reformatting the commit message
+## Jujutsu-Specific Tips
 
-spr is fairly permissive in parsing your commit message: it is case-insensitive, and it mostly ignores whitespace. You can run `spr format` to rewrite your HEAD commit's message to be in a canonical format.
+1. **Change IDs are stable**: Unlike Git commit hashes, Jujutsu change IDs remain the same even when you modify the description.
 
-This command does not touch GitHub; it doesn't matter whether the commit has a PR created for it or not.
+2. **Description templates**: You can set up a description template:
+   ```toml
+   # In .jj/repo/config.toml
+   [templates]
+   draft_commit_description = '''
+   
 
-Note that `spr land` will write the message of the commit it lands in the canonical format; you don't need to do so yourself before landing.
+   Test Plan:
+   
+
+   Reviewers:
+   '''
+   ```
+
+3. **Bulk operations**: Update multiple descriptions at once:
+   ```shell
+   # Reword multiple changes interactively
+   jj reword -r 'mine() & ~main@origin'
+   ```
+
+## Reformatting
+
+`jj-spr format` reformats your current change's description to match the canonical format:
+
+```shell
+jj-spr format
+```
+
+This is purely local and doesn't touch GitHub. It's useful for cleaning up formatting before running `jj-spr diff`.
