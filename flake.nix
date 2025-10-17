@@ -78,6 +78,8 @@
 
             nativeBuildInputs = with pkgs; [
               pkg-config
+              git
+              jujutsu
             ];
 
             meta = with pkgs.lib; {

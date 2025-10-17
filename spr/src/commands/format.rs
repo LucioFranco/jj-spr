@@ -58,9 +58,5 @@ pub async fn format(
     }
     jj.rewrite_commit_messages(&mut pc)?;
 
-    if failure {
-        Err(Error::empty())
-    } else {
-        Ok(())
-    }
+    if failure { Err(Error::empty()) } else { Ok(()) }
 }
