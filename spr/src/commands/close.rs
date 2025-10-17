@@ -10,7 +10,7 @@ use std::process::Stdio;
 use indoc::formatdoc;
 
 use crate::{
-    error::{add_error, Error, Result},
+    error::{Error, Result, add_error},
     github::{PullRequestState, PullRequestUpdate},
     jj::PreparedCommit,
     message::MessageSection,

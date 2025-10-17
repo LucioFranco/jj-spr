@@ -8,11 +8,11 @@
 use std::iter::zip;
 
 use crate::{
-    error::{add_error, Error, Result, ResultExt},
+    error::{Error, Result, ResultExt, add_error},
     github::{
         GitHub, PullRequest, PullRequestRequestReviewers, PullRequestState, PullRequestUpdate,
     },
-    message::{validate_commit_message, MessageSection},
+    message::{MessageSection, validate_commit_message},
     output::{output, write_commit_title},
     utils::{parse_name_list, remove_all_parens, run_command},
 };
@@ -245,50 +245,49 @@ async fn diff_impl(
     // Parse "Reviewers" section, if this is a new Pull Request
     let mut requested_reviewers = PullRequestRequestReviewers::default();
 
-    if local_commit.pull_request_number.is_none() {
-        if let Some(reviewers) = message.get(&MessageSection::Reviewers) {
-            let reviewers = parse_name_list(reviewers);
-            let mut checked_reviewers = Vec::new();
+    if local_commit.pull_request_number.is_none()
+        && let Some(reviewers) = message.get(&MessageSection::Reviewers)
+    {
+        let reviewers = parse_name_list(reviewers);
+        let mut checked_reviewers = Vec::new();
 
-            for reviewer in reviewers {
-                // Teams are indicated with a leading #
-                if let Some(slug) = reviewer.strip_prefix('#') {
-                    if let Ok(team) =
-                        GitHub::get_github_team((&config.owner).into(), slug.into()).await
-                    {
-                        requested_reviewers
-                            .team_reviewers
-                            .push(team.slug.to_string());
+        for reviewer in reviewers {
+            // Teams are indicated with a leading #
+            if let Some(slug) = reviewer.strip_prefix('#') {
+                if let Ok(team) = GitHub::get_github_team((&config.owner).into(), slug.into()).await
+                {
+                    requested_reviewers
+                        .team_reviewers
+                        .push(team.slug.to_string());
 
-                        checked_reviewers.push(reviewer);
-                    } else {
-                        return Err(Error::new(format!(
-                            "Reviewers field contains unknown team '{}'",
-                            reviewer
-                        )));
-                    }
-                } else if let Ok(user) = GitHub::get_github_user(reviewer.clone()).await {
-                    requested_reviewers.reviewers.push(user.login);
-                    if let Some(name) = user.name {
-                        checked_reviewers.push(format!(
-                            "{} ({})",
-                            reviewer.clone(),
-                            remove_all_parens(&name)
-                        ));
-                    } else {
-                        checked_reviewers.push(reviewer);
-                    }
+                    checked_reviewers.push(reviewer);
                 } else {
                     return Err(Error::new(format!(
-                        "Reviewers field contains unknown user '{}'",
+                        "Reviewers field contains unknown team '{}'",
                         reviewer
                     )));
                 }
+            } else if let Ok(user) = GitHub::get_github_user(reviewer.clone()).await {
+                requested_reviewers.reviewers.push(user.login);
+                if let Some(name) = user.name {
+                    checked_reviewers.push(format!(
+                        "{} ({})",
+                        reviewer.clone(),
+                        remove_all_parens(&name)
+                    ));
+                } else {
+                    checked_reviewers.push(reviewer);
+                }
+            } else {
+                return Err(Error::new(format!(
+                    "Reviewers field contains unknown user '{}'",
+                    reviewer
+                )));
             }
-
-            message.insert(MessageSection::Reviewers, checked_reviewers.join(", "));
-            local_commit.message_changed = true;
         }
+
+        message.insert(MessageSection::Reviewers, checked_reviewers.join(", "));
+        local_commit.message_changed = true;
     }
 
     // Get the name of the existing Pull Request branch, or constuct one if

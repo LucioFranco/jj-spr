@@ -10,7 +10,7 @@ use serde::Deserialize;
 
 use crate::{
     error::{Error, Result, ResultExt},
-    message::{build_github_body, parse_message, MessageSection, MessageSectionsMap},
+    message::{MessageSection, MessageSectionsMap, build_github_body, parse_message},
 };
 use std::collections::{HashMap, HashSet};
 
