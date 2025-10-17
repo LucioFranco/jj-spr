@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Improvements
+
+- upgrade to Rust edition 2024
+
 ## [1.3.5] - 2023-11-02
 
 ### Fixes
