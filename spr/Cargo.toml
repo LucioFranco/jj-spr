@@ -6,7 +6,7 @@ description = "Jujutsu subcommand for submitting pull requests for individual, a
 repository = "https://github.com/getcord/spr"
 homepage = "https://github.com/getcord/spr"
 license = "MIT"
-edition = "2021"
+edition = "2024"
 exclude = [".github", ".gitignore"]
 
 [[bin]]

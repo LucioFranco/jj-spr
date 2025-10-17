@@ -213,8 +213,7 @@ fn test_stacked_pr_shows_only_child_diff() {
 
     // The parent change ID should remain the same
     assert_eq!(
-        parent_change_id_before,
-        parent_change_id_after,
+        parent_change_id_before, parent_change_id_after,
         "Parent change ID changed when processing child commit - this indicates the parent became immutable"
     );
 
