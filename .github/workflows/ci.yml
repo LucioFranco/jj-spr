@@ -26,23 +26,21 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config libssl-dev
+          cargo install cargo-binstall
+          cargo binstall --strategies crate-meta-data jj-cli
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: "spr -> target"
 
       - name: Check formatting
         run: |
-          cd spr
           cargo fmt --all -- --check
 
       - name: Run clippy
         run: |
-          cd spr
           cargo clippy --all-features --all-targets -- -D warnings
 
       - name: Run tests
         run: |
-          cd spr
+          export PATH="$HOME/.cargo/bin:$PATH"
           cargo test
