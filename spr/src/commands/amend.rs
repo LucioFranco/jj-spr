@@ -53,11 +53,9 @@ pub async fn amend(
     }
 
     // Request the Pull Request information for each commit (well, those that
-    // declare to have Pull Requests). This list is in reverse order, so that
-    // below we can pop from the vector as we iterate.
-    let mut pull_requests: Vec<_> = pc
+    // declare to have Pull Requests).
+    let pull_requests: Vec<_> = pc
         .iter()
-        .rev()
         .map(|commit: &PreparedCommit| {
             commit
                 .pull_request_number
@@ -67,9 +65,8 @@ pub async fn amend(
 
     let mut failure = false;
 
-    for commit in pc.iter_mut() {
+    for (commit, pull_request) in pc.iter_mut().zip(pull_requests.into_iter()) {
         write_commit_title(commit)?;
-        let pull_request = pull_requests.pop().flatten();
         if let Some(pull_request) = pull_request {
             let pull_request = pull_request.await??;
             commit.message = pull_request.sections;
