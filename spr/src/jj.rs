@@ -80,13 +80,15 @@ impl Jujutsu {
         config: &Config,
         from_revision: &str,
         to_revision: &str,
+        is_inclusive: bool,
     ) -> Result<Vec<PreparedCommit>> {
         // Get commit range using jj
+        let operator = if is_inclusive { "::" } else { ".." };
         let output = self.run_captured_with_args([
             "log",
             "--no-graph",
             "-r",
-            &format!("{}..{}", from_revision, to_revision),
+            &format!("{}{}{}", from_revision, operator, to_revision),
             "--template",
             "commit_id ++ \"\\n\"",
         ])?;
@@ -471,7 +473,7 @@ mod tests {
         let jj = Jujutsu::new(git_repo).expect("Failed to create Jujutsu instance");
 
         // Test getting commit range
-        let result = jj.get_prepared_commits_from_to(&config, "@----", "@-");
+        let result = jj.get_prepared_commits_from_to(&config, "@----", "@-", false);
         assert!(
             result.is_ok(),
             "Failed to get commit range: {:?}",
