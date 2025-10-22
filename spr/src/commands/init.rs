@@ -43,7 +43,7 @@ pub async fn init() -> Result<()> {
     });
 
     let reuse_token = match github_auth_token {
-        None => true,
+        None => false,
         Some(AuthTokenSource::GitHubCLI(_)) => dialoguer::Confirm::new()
             .with_prompt("Use the GitHub CLI to authenticate?")
             .default(true)
@@ -245,6 +245,7 @@ fn validate_branch_prefix(branch_prefix: &str) -> Result<()> {
     Ok(())
 }
 
+/// Determines whether to reuse an existing auth token based on the token source.
 #[cfg(test)]
 mod tests {
     use super::validate_branch_prefix;
@@ -301,4 +302,5 @@ mod tests {
         assert!(validate_branch_prefix("bad[").is_err(), "Reject [");
         assert!(validate_branch_prefix(r"bad\").is_err(), "Reject \\");
     }
+
 }
