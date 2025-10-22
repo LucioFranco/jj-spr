@@ -1,12 +1,18 @@
-# jj-spr
+# jj-spr (Jujutsu Stacked Pull Requests)
 
-A command-line tool for submitting and updating GitHub Pull Requests from local Jujutsu commits that may be amended and rebased. Pull Requests can be stacked to allow for a series of code reviews of interdependent code.
+A command-line tool for submitting and updating GitHub Pull Requests from local Jujutsu changes. Built for Jujutsu's workflow of working with changes (not branches), jj-spr makes it natural to send individual changes for review and land them independently or in stacks.
+
+**Key features:**
+- 📝 **Review changes, not branches**: Each Jujutsu change becomes a PR, aligned with Jujutsu's branch-free philosophy
+- 🥞 **Powerful stacking**: Create dependent PRs that can be reviewed and landed independently, with automatic rebase handling
+- 🔄 **Amend-friendly**: Update PRs by amending local changes - stable change IDs mean your PRs stay linked even through rebases
+- ⚡ **Streamlined workflow**: Simple commands that work with Jujutsu's natural change-based model
 
 Designed to be run as a Jujutsu subcommand: `jj spr <command>`.
 
 ## About This Fork
 
-This project is a fork of the original [spr](https://github.com/getcord/spr) tool, specifically building upon the Jujutsu integration work started by [sunshowers](https://github.com/sunshowers). 
+This project is a fork of the original [spr](https://github.com/getcord/spr) tool, specifically building upon the Jujutsu integration work started by [sunshowers](https://github.com/sunshowers).
 
 ### Why This Fork Exists
 
@@ -57,7 +63,7 @@ spr = ["util", "exec", "--", "/path/to/jj-spr"]
 After configuration, you can use commands like:
 ```bash
 jj spr diff           # Create/update a PR for the current change
-jj spr diff -r @~1     # Create/update a PR for a specific change
+jj spr diff -r @-     # Create/update a PR for a specific change
 jj spr land            # Land (merge) a PR
 jj spr list            # List open PRs
 ```
@@ -76,28 +82,50 @@ jj spr list            # List open PRs
 
 ### Basic Workflow
 
-1. **Create a commit:**
+The recommended workflow keeps you on an empty working copy (`@`) while your PR changes are at `@-`:
+
+1. **Create a change:**
    ```bash
+   jj new main@origin
    echo "new feature" > feature.txt
-   jj commit -m "Add new feature"
+   jj describe -m "Add new feature
+
+   Test Plan: Tested locally"
    ```
 
-2. **Submit for review:**
+2. **Move to empty working copy:**
    ```bash
-   jj spr diff
+   jj new  # Your PR change is now at @-
    ```
 
-3. **Make changes and update:**
+3. **Submit for review:**
+   ```bash
+   jj spr diff  # Defaults to @-, your PR change
+   ```
+
+4. **Make changes and update:**
    ```bash
    echo "updated feature" > feature.txt
-   jj describe -m "Add new feature (updated)"
+   jj squash  # Squash changes into @-
    jj spr diff -m "Updated implementation"
    ```
 
-4. **Land the PR:**
+5. **Land the PR:**
    ```bash
-   jj spr land
+   jj spr land -r @-  # Must specify @- since land defaults to @
    ```
+
+6. **Rebase after landing:**
+   ```bash
+   jj git fetch
+   jj rebase -r @ -d main@origin
+   ```
+
+> **Key Concepts:**
+> - `@` = your working copy (where you make edits)
+> - `@-` = parent of working copy (your PR change)
+> - `jj spr diff` defaults to `@-`
+> - `jj spr land` defaults to `@`
 
 ### Stacked Pull Requests
 
@@ -105,16 +133,27 @@ jj-spr excels at handling stacked PRs for related changes:
 
 ```bash
 # Create first change
-jj commit -m "Foundation change"
-jj spr diff  # Creates PR #1
+jj new main@origin
+# ... make changes ...
+jj describe -m "Foundation change"
 
-# Create dependent change
-jj commit -m "Building on foundation"  
-jj spr diff  # Creates PR #2 stacked on PR #1
+# Create dependent change on top
+jj new
+# ... make changes ...
+jj describe -m "Building on foundation"
+
+# Move to empty working copy
+jj new
+
+# Create PRs for entire stack
+jj spr diff --all  # Creates PR #1 and PR #2 (stacked)
 
 # Update just the second change
-jj spr diff -r @  # Updates only PR #2
+jj squash --into <change-id-of-second>
+jj spr diff -r <change-id-of-second>
 ```
+
+For more details on stacking, see the [documentation](./docs/user/stack.md).
 
 ## Commands
 
@@ -182,7 +221,10 @@ git config spr.requireTestPlan true
 
 - **Per-Command Revisions**: `jj spr diff -r <rev>` instead of global revision flags
 - **Range Support**: `jj spr diff -r main..@` automatically enables multi-commit mode
-- **Better Defaults**: Uses `@-` (parent of working copy) as the default revision
+- **Better Defaults**: 
+  - `jj spr diff` defaults to `@-` (parent of working copy - your PR change)
+  - `jj spr land` defaults to `@` (working copy)
+  - Works seamlessly with the recommended empty-working-copy workflow
 
 ## Contributing
 

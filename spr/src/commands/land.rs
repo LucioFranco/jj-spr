@@ -23,7 +23,7 @@ pub struct LandOptions {
     #[clap(long)]
     cherry_pick: bool,
 
-    /// Jujutsu revision to operate on (if not specified, uses '@-')
+    /// Jujutsu revision to operate on (if not specified, uses '@')
     #[clap(short = 'r', long)]
     revision: Option<String>,
 }

@@ -19,9 +19,9 @@ The test plan can also be several lines long.
 Reviewers: github-username-a, github-username-b
 ```
 
-The first line will be the title of the PR created by `jj-spr diff`, and the rest of the lines except for the `Reviewers` line will be the PR description (i.e. the content of the first comment). The GitHub users named on the `Reviewers` line will be added to the PR as reviewers.
+The first line will be the title of the PR created by `jj spr diff`, and the rest of the lines except for the `Reviewers` line will be the PR description (i.e. the content of the first comment). The GitHub users named on the `Reviewers` line will be added to the PR as reviewers.
 
-The `Test Plan` section is required to be present by default; `jj-spr diff` will fail with an error if it isn't. You can disable this in the [configuration](../reference/configuration.md).
+The `Test Plan` section is required to be present by default; `jj spr diff` will fail with an error if it isn't. You can disable this in the [configuration](../reference/configuration.md).
 
 ## Working with Jujutsu Descriptions
 
@@ -45,7 +45,7 @@ jj log --no-graph -r @
 
 ## Updating the PR Title and Description
 
-When you create a PR with `jj-spr diff`, **the PR becomes the source of truth** for the title and description. When you land a change with `jj-spr land`, its description will be updated to match the PR's title and description.
+When you create a PR with `jj spr diff`, **the PR becomes the source of truth** for the title and description. When you land a change with `jj spr land`, its description will be updated to match the PR's title and description.
 
 If you want to update the title or description, there are two ways:
 
@@ -57,27 +57,27 @@ If you want to update the title or description, there are two ways:
    jj describe
    
    # Push the update to the PR
-   jj-spr diff --update-message
+   jj spr diff --update-message
    ```
    
    _Note: This does not update reviewers; that must be done in the GitHub UI._
 
 If you want to sync your local description with the PR's current title and description:
 ```shell
-jj-spr amend
+jj spr amend
 ```
 
-## Fields Added by jj-spr
+## Fields Added by jj spr
 
-At various stages, `jj-spr` will add metadata to your change description:
+At various stages, `jj spr` will add metadata to your change description:
 
-1. **After creating a PR**, `jj-spr diff` adds:
+1. **After creating a PR**, `jj spr diff` adds:
    ```
    Pull Request: https://github.com/example/project/pull/123
    ```
-   This line tells `jj-spr` that a PR exists for this change.
+   This line tells `jj spr` that a PR exists for this change.
 
-2. **After landing**, `jj-spr land` adds:
+2. **After landing**, `jj spr land` adds:
    ```
    Reviewed By: github-username-a
    ```
@@ -99,7 +99,7 @@ Test Plan:
 Reviewers: alice, bob
 ```
 
-### After `jj-spr diff`:
+### After `jj spr diff`:
 ```
 Add user authentication
 
@@ -115,7 +115,7 @@ Reviewers: alice, bob
 Pull Request: https://github.com/example/api/pull/456
 ```
 
-### After `jj-spr land` (with bob's approval):
+### After `jj spr land` (with bob's approval):
 ```
 Add user authentication
 
@@ -159,10 +159,10 @@ Pull Request: https://github.com/example/api/pull/456
 
 ## Reformatting
 
-`jj-spr format` reformats your current change's description to match the canonical format:
+`jj spr format` reformats your current change's description to match the canonical format:
 
 ```shell
-jj-spr format
+jj spr format
 ```
 
-This is purely local and doesn't touch GitHub. It's useful for cleaning up formatting before running `jj-spr diff`.
+This is purely local and doesn't touch GitHub. It's useful for cleaning up formatting before running `jj spr diff`.
