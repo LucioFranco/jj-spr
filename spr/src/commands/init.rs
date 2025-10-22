@@ -245,7 +245,6 @@ fn validate_branch_prefix(branch_prefix: &str) -> Result<()> {
     Ok(())
 }
 
-/// Determines whether to reuse an existing auth token based on the token source.
 #[cfg(test)]
 mod tests {
     use super::validate_branch_prefix;
