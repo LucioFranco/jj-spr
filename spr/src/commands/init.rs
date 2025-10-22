@@ -301,5 +301,4 @@ mod tests {
         assert!(validate_branch_prefix("bad[").is_err(), "Reject [");
         assert!(validate_branch_prefix(r"bad\").is_err(), "Reject \\");
     }
-
 }
