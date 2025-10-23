@@ -43,7 +43,7 @@ pub async fn init() -> Result<()> {
     });
 
     let reuse_token = match github_auth_token {
-        None => true,
+        None => false,
         Some(AuthTokenSource::GitHubCLI(_)) => dialoguer::Confirm::new()
             .with_prompt("Use the GitHub CLI to authenticate?")
             .default(true)
