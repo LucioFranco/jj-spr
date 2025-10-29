@@ -67,7 +67,7 @@
 
             buildInputs = with pkgs; [
               openssl
-              pkg-config
+              zlib
             ];
 
             nativeBuildInputs = with pkgs; [
