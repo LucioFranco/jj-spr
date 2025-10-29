@@ -162,7 +162,6 @@ impl Jujutsu {
         parent_oids: &[Oid],
     ) -> Result<Oid> {
         let original_commit = self.git_repo.find_commit(original_commit_oid)?;
-        let author = original_commit.author();
         let tree = self.git_repo.find_tree(tree_oid)?;
 
         let mut parents = Vec::new();
@@ -171,9 +170,23 @@ impl Jujutsu {
         }
         let parent_refs: Vec<_> = parents.iter().collect();
 
+        // Take the user/email from the existing commit but make a new signature which has a
+        // timestamp of now.
+        let committer = git2::Signature::now(
+            String::from_utf8_lossy(original_commit.committer().name_bytes()).as_ref(),
+            String::from_utf8_lossy(original_commit.committer().email_bytes()).as_ref(),
+        )?;
+
+        // The author signature should reference the same user as the original commit, but we set
+        // the timestamp to now, so this commit shows up in GitHub's timeline in the right place.
+        let author = git2::Signature::now(
+            String::from_utf8_lossy(original_commit.author().name_bytes()).as_ref(),
+            String::from_utf8_lossy(original_commit.author().email_bytes()).as_ref(),
+        )?;
+
         Ok(self
             .git_repo
-            .commit(None, &author, &author, message, &tree, &parent_refs)?)
+            .commit(None, &author, &committer, message, &tree, &parent_refs)?)
     }
 
     pub fn cherrypick(&self, commit_oid: Oid, onto_oid: Oid) -> Result<git2::Index> {
@@ -520,6 +533,73 @@ mod tests {
             result.is_ok(),
             "Status check should pass for clean repo: {:?}",
             result.err()
+        );
+    }
+
+    #[test]
+    fn test_derived_commit_has_different_timestamp() {
+        let (_temp_dir, repo_path) = create_jujutsu_test_repo();
+
+        // Create a commit with some content
+        let _commit1 = create_jujutsu_commit(&repo_path, "Original commit", "original content");
+
+        let git_repo = git2::Repository::open(&repo_path).expect("Failed to open git repository");
+        let jj = Jujutsu::new(git_repo).expect("Failed to create Jujutsu instance");
+
+        // Get the original commit
+        let original_commit_oid = jj
+            .resolve_revision_to_commit_id("@-")
+            .expect("Failed to resolve @- revision");
+        let original_commit = jj
+            .git_repo
+            .find_commit(original_commit_oid)
+            .expect("Failed to find original commit");
+
+        // Sleep briefly to ensure timestamp difference
+        std::thread::sleep(std::time::Duration::from_secs(1));
+
+        // Create a derived commit
+        let tree_oid = original_commit.tree().expect("Failed to get tree").id();
+        let parent_oids = if original_commit.parents().count() > 0 {
+            vec![
+                original_commit
+                    .parent(0)
+                    .expect("Failed to get parent")
+                    .id(),
+            ]
+        } else {
+            vec![]
+        };
+
+        let derived_commit_oid = jj
+            .create_derived_commit(
+                original_commit_oid,
+                "Derived commit message",
+                tree_oid,
+                &parent_oids,
+            )
+            .expect("Failed to create derived commit");
+
+        // Get the derived commit
+        let derived_commit = jj
+            .git_repo
+            .find_commit(derived_commit_oid)
+            .expect("Failed to find derived commit");
+
+        // Verify that derived timestamps are newer than original
+        let original_author_time = original_commit.author().when();
+        let derived_author_time = derived_commit.author().when();
+        let original_committer_time = original_commit.committer().when();
+        let derived_committer_time = derived_commit.committer().when();
+
+        assert!(
+            derived_author_time.seconds() > original_author_time.seconds(),
+            "Derived commit author timestamp should be newer than original"
+        );
+
+        assert!(
+            derived_committer_time.seconds() > original_committer_time.seconds(),
+            "Derived commit committer timestamp should be newer than original"
         );
     }
 }
