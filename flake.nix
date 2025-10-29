@@ -116,6 +116,7 @@
               # Build dependencies
               openssl
               pkg-config
+              zlib
 
               # Required runtime dependencies for development and testing
               git
@@ -124,7 +125,7 @@
 
             # Environment variables for development
             RUST_SRC_PATH = "${rustToolchain.rust-src}/lib/rustlib/src/rust/library";
-            PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig";
+            PKG_CONFIG_PATH = "${pkgs.openssl.dev}/lib/pkgconfig:${pkgs.zlib.dev}/lib/pkgconfig";
           };
         };
     };
