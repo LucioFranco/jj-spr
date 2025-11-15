@@ -6,6 +6,9 @@ language = "en"
 multilingual = false
 src = "book/src"
 
+[build]
+build-dir = "book/book"
+
 [output.html]
 git-repository-url = "https://github.com/LucioFranco/jj-spr"
 edit-url-template = "https://github.com/LucioFranco/jj-spr/edit/main/{path}"
