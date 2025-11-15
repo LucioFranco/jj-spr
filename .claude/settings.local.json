@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(superpowers:systematic-debugging)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(jj file list:*)",
+      "Bash(cat:*)",
+      "Bash(mdbook build --help:*)",
+      "Bash(jj status:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
