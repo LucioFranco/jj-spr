@@ -9,7 +9,7 @@ use indoc::formatdoc;
 use lazy_regex::regex;
 
 use crate::{
-    config::{AuthTokenSource, get_auth_token_with_source},
+    config::{AuthTokenSource, get_auth_token_with_source, set_jj_config},
     error::{Error, Result, ResultExt},
     output::output,
 };
@@ -23,7 +23,7 @@ pub async fn init() -> Result<()> {
          a Git repository.",
         path
     ))?;
-    let mut config = repo.config()?;
+    let config = repo.config()?;
 
     // GitHub Personal Access Token
 
@@ -93,7 +93,7 @@ pub async fn init() -> Result<()> {
     output("👋", &formatdoc!("Hello {}!", github_user.login))?;
 
     if !reuse_token {
-        config.set_str("spr.githubAuthToken", pat.as_str())?;
+        set_jj_config("spr.githubAuthToken", pat.as_str(), &path)?;
     }
 
     // Name of remote
@@ -117,7 +117,7 @@ pub async fn init() -> Result<()> {
                 .unwrap_or_else(|| "origin".to_string()),
         )
         .interact_text()?;
-    config.set_str("spr.githubRemoteName", &remote)?;
+    set_jj_config("spr.githubRemoteName", &remote, &path)?;
 
     // Name of the GitHub repo
 
@@ -150,7 +150,7 @@ pub async fn init() -> Result<()> {
         .with_prompt("GitHub repository")
         .with_initial_text(github_repo)
         .interact_text()?;
-    config.set_str("spr.githubRepository", &github_repo)?;
+    set_jj_config("spr.githubRepository", &github_repo, &path)?;
 
     // Master branch name (just query GitHub)
 
@@ -158,13 +158,14 @@ pub async fn init() -> Result<()> {
         .get::<octocrab::models::Repository, _, _>(format!("repos/{}", &github_repo), None::<&()>)
         .await?;
 
-    config.set_str(
+    set_jj_config(
         "spr.githubMasterBranch",
         github_repo_info
             .default_branch
             .as_ref()
             .map(|s| &s[..])
             .unwrap_or("master"),
+        &path,
     )?;
 
     // Pull Request branch prefix
@@ -196,7 +197,7 @@ pub async fn init() -> Result<()> {
         .validate_with(|input: &String| -> Result<()> { validate_branch_prefix(input) })
         .interact_text()?;
 
-    config.set_str("spr.branchPrefix", &branch_prefix)?;
+    set_jj_config("spr.branchPrefix", &branch_prefix, &path)?;
 
     Ok(())
 }
