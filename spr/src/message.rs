@@ -295,4 +295,105 @@ Reviewer:    a, b, c"#,
             .into()
         );
     }
+
+    #[test]
+    fn test_validate_commit_message_without_test_plan_when_not_required() {
+        // Config with require_test_plan = false (the new default)
+        let config = crate::config::Config::new(
+            "owner".into(),
+            "repo".into(),
+            "origin".into(),
+            "main".into(),
+            "spr/".into(),
+            false,
+            false, // require_test_plan = false
+        );
+
+        let message = parse_message("My Title\n\nSome description", MessageSection::Title);
+
+        // Should succeed without Test Plan when require_test_plan is false
+        assert!(validate_commit_message(&message, &config).is_ok());
+    }
+
+    #[test]
+    fn test_validate_commit_message_with_test_plan_when_not_required() {
+        // Config with require_test_plan = false
+        let config = crate::config::Config::new(
+            "owner".into(),
+            "repo".into(),
+            "origin".into(),
+            "main".into(),
+            "spr/".into(),
+            false,
+            false, // require_test_plan = false
+        );
+
+        let message = parse_message(
+            "My Title\n\nSome description\n\nTest Plan: Test it",
+            MessageSection::Title,
+        );
+
+        // Should succeed with Test Plan too
+        assert!(validate_commit_message(&message, &config).is_ok());
+    }
+
+    #[test]
+    fn test_validate_commit_message_without_test_plan_when_required() {
+        // Config with require_test_plan = true
+        let config = crate::config::Config::new(
+            "owner".into(),
+            "repo".into(),
+            "origin".into(),
+            "main".into(),
+            "spr/".into(),
+            false,
+            true, // require_test_plan = true
+        );
+
+        let message = parse_message("My Title\n\nSome description", MessageSection::Title);
+
+        // Should fail without Test Plan when require_test_plan is true
+        assert!(validate_commit_message(&message, &config).is_err());
+    }
+
+    #[test]
+    fn test_validate_commit_message_with_test_plan_when_required() {
+        // Config with require_test_plan = true
+        let config = crate::config::Config::new(
+            "owner".into(),
+            "repo".into(),
+            "origin".into(),
+            "main".into(),
+            "spr/".into(),
+            false,
+            true, // require_test_plan = true
+        );
+
+        let message = parse_message(
+            "My Title\n\nSome description\n\nTest Plan: Test it",
+            MessageSection::Title,
+        );
+
+        // Should succeed with Test Plan when require_test_plan is true
+        assert!(validate_commit_message(&message, &config).is_ok());
+    }
+
+    #[test]
+    fn test_validate_commit_message_without_title() {
+        // Config with require_test_plan = false
+        let config = crate::config::Config::new(
+            "owner".into(),
+            "repo".into(),
+            "origin".into(),
+            "main".into(),
+            "spr/".into(),
+            false,
+            false,
+        );
+
+        let message = parse_message("", MessageSection::Title);
+
+        // Should fail without title regardless of test plan requirement
+        assert!(validate_commit_message(&message, &config).is_err());
+    }
 }
