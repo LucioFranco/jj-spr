@@ -60,9 +60,6 @@ pub async fn diff(
     gh: &mut crate::github::GitHub,
     config: &crate::config::Config,
 ) -> Result<()> {
-    // Abort right here if the local Jujutsu repository is not clean
-    jj.check_no_uncommitted_changes()?;
-
     let mut result = Ok(());
 
     // Determine revision and whether to use range mode
