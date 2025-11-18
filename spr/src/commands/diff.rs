@@ -12,7 +12,7 @@ use crate::{
     github::{
         GitHub, PullRequest, PullRequestRequestReviewers, PullRequestState, PullRequestUpdate,
     },
-    message::{MessageSection, validate_commit_message},
+    message::{MessageSection, MessageSectionsMap, validate_commit_message},
     output::{output, write_commit_title},
     utils::{parse_name_list, remove_all_parens, run_command},
 };
@@ -105,10 +105,17 @@ pub async fn diff(
         })
         .collect();
 
+    // Create a snapshot of commits for stack detection (we need this because we'll be
+    // mutating the commits in the loop below)
+    let commits_snapshot: Vec<_> = prepared_commits
+        .iter()
+        .map(|c| (c.pull_request_number, c.message.clone()))
+        .collect();
+
     let mut message_on_prompt = "".to_string();
 
-    for (prepared_commit, pull_request_task) in
-        zip(prepared_commits.iter_mut(), pull_request_tasks.into_iter())
+    for (index, (prepared_commit, pull_request_task)) in
+        zip(prepared_commits.iter_mut(), pull_request_tasks.into_iter()).enumerate()
     {
         if result.is_err() {
             break;
@@ -135,6 +142,8 @@ pub async fn diff(
             prepared_commit,
             master_base_oid,
             pull_request,
+            index,
+            &commits_snapshot,
         )
         .await;
     }
@@ -159,9 +168,26 @@ async fn diff_impl(
     local_commit: &mut crate::jj::PreparedCommit,
     master_base_oid: Oid,
     pull_request: Option<PullRequest>,
+    current_index: usize,
+    all_commits_snapshot: &[(Option<u64>, MessageSectionsMap)],
 ) -> Result<()> {
     // Parsed commit message of the local commit
     let message = &mut local_commit.message;
+
+    // Detect and add stack information
+    if let Some(stack_position) =
+        crate::stack_info::detect_stack_position(current_index, all_commits_snapshot)
+    {
+        let stack_text =
+            crate::stack_info::build_stack_info_text(&stack_position, config, all_commits_snapshot);
+        message.insert(MessageSection::StackInfo, stack_text);
+        local_commit.message_changed = true;
+    } else {
+        // Remove stack info if it exists but shouldn't (e.g., stack was reduced to single PR)
+        if message.remove(&MessageSection::StackInfo).is_some() {
+            local_commit.message_changed = true;
+        }
+    }
 
     // Check if the local commit is based directly on the master branch.
     let directly_based_on_master = local_commit.parent_oid == master_base_oid;
