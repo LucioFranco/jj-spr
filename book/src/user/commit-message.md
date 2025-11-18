@@ -21,7 +21,7 @@ Reviewers: github-username-a, github-username-b
 
 The first line will be the title of the PR created by `jj spr diff`, and the rest of the lines except for the `Reviewers` line will be the PR description (i.e. the content of the first comment). The GitHub users named on the `Reviewers` line will be added to the PR as reviewers.
 
-The `Test Plan` section is required to be present by default; `jj spr diff` will fail with an error if it isn't. You can disable this in the [configuration](../reference/configuration.md).
+The `Test Plan` section is optional by default, but can be made required in the [configuration](../reference/configuration.md) by setting `spr.requireTestPlan` to `true`.
 
 ## Working with Jujutsu Descriptions
 
