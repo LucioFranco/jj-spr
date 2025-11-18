@@ -163,6 +163,36 @@ Local Jujutsu State:                 GitHub State:
 - Stacked PRs: PR #124 is based on PR #123's branch
 - When PR #123 lands, PR #124 automatically updates to be based on `main`
 
+### Stack Information in PR Descriptions
+
+When you create stacked PRs, jj-spr automatically adds stack information to each PR description to help reviewers understand the relationships:
+
+**Example stack info for PR #124 (middle of stack):**
+
+```markdown
+---
+**Stack Position: 2 of 3**
+
+⬆️ **Depends on:** owner/repo#123 - Add authentication module
+⬇️ **Required for:**
+   - owner/repo#125 - Add admin dashboard
+
+**Full Stack:**
+1. owner/repo#123 - Add authentication module
+2. owner/repo#124 - Add user profile endpoints (this PR)
+3. owner/repo#125 - Add admin dashboard
+
+---
+```
+
+This information:
+- Shows the PR's position in the stack (2 of 3)
+- Links to parent PR it depends on
+- Links to child PRs that depend on it
+- Provides a full visualization of the stack with "this PR" indicator
+- Uses GitHub's automatic linking syntax (e.g., `owner/repo#123`)
+- Updates automatically when you run `jj spr diff` to add/remove PRs from the stack
+
 ## Updating Changes in the Stack
 
 Suppose you need to update the first change (authentication module with ID `rlvkpnrw`) in response to review feedback.
