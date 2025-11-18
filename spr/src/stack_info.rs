@@ -57,7 +57,7 @@ pub fn build_stack_info_text(
 
     // Add child PR links if exist
     if !position.child_prs.is_empty() {
-        text.push_str("⬇️ **Required for:**");
+        text.push_str("⬇️ **Required for:**\n");
         for child_pr in &position.child_prs {
             let child_title = all_commits
                 .iter()
@@ -67,11 +67,10 @@ pub fn build_stack_info_text(
                 .unwrap_or_default();
 
             text.push_str(&format!(
-                " {}/{}#{}{}",
+                "   - {}/{}#{}{}\n",
                 config.owner, config.repo, child_pr, child_title
             ));
         }
-        text.push('\n');
     }
 
     // Add full stack visualization if stack has more than 1 PR
@@ -274,7 +273,8 @@ mod tests {
         assert!(text.contains("Stack Position: 2 of 3"));
         assert!(text.contains("⬆️ **Depends on:** LucioFranco/jj-spr#120"));
         assert!(text.contains("Add authentication module"));
-        assert!(text.contains("⬇️ **Required for:** LucioFranco/jj-spr#122"));
+        assert!(text.contains("⬇️ **Required for:**"));
+        assert!(text.contains("LucioFranco/jj-spr#122"));
         assert!(text.contains("Add user profile endpoints"));
         assert!(text.contains("**Full Stack:**"));
         assert!(text.contains("(this PR)"));
