@@ -3,7 +3,6 @@ title = "Super Pull Requests"
 authors = ["Lucio Franco"]
 description = "Power tool for Jujutsu + GitHub workflows with amend-friendly single PRs and effortless stacked PRs"
 language = "en"
-multilingual = false
 src = "book/src"
 
 [build]
