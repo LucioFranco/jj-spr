@@ -56,11 +56,7 @@ In this example:
    # Describe the change
    jj describe -m "Add user authentication
 
-   This implements basic user authentication using JWT tokens.
-
-   Test Plan:
-   - Added unit tests for auth module
-   - Manually tested login/logout flow"
+   This implements basic user authentication using JWT tokens."
    ```
 
    See [this guide](./commit-message.md) for what to put in your commit message.
@@ -204,9 +200,7 @@ jj new main@origin
 # ... make changes ...
 
 # 2. Describe your change
-jj describe -m "Add feature
-
-Test Plan: Tested locally"
+jj describe -m "Add feature"
 
 # 3. Create a new empty change on top (moves your PR change to @-)
 jj new

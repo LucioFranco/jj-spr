@@ -62,7 +62,6 @@ git config --list | grep spr
 
 # Update individual settings
 git config spr.githubAuthToken "your-new-token"
-git config spr.requireTestPlan true
 ```
 
 For detailed configuration options, see the [Configuration Reference](../reference/configuration.md).

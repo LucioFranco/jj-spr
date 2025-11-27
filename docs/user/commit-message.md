@@ -12,16 +12,10 @@ One-line title
 Then a description, which may be multiple lines long.
 This describes the change you are making with this commit.
 
-Test Plan: how to test the change in this commit.
-
-The test plan can also be several lines long.
-
 Reviewers: github-username-a, github-username-b
 ```
 
 The first line will be the title of the PR created by `jj spr diff`, and the rest of the lines except for the `Reviewers` line will be the PR description (i.e. the content of the first comment). The GitHub users named on the `Reviewers` line will be added to the PR as reviewers.
-
-The `Test Plan` section is required to be present by default; `jj spr diff` will fail with an error if it isn't. You can disable this in the [configuration](../reference/configuration.md).
 
 ## Working with Jujutsu Descriptions
 
@@ -33,9 +27,7 @@ jj describe
 # Or set directly from command line
 jj describe -m "Add feature
 
-This is a really cool feature!
-
-Test Plan: Run the test suite"
+This is a really cool feature!"
 ```
 
 View the current description:
@@ -91,11 +83,6 @@ Add user authentication
 
 Implements JWT-based authentication for the API.
 
-Test Plan:
-- Unit tests for auth module
-- Integration tests for login flow
-- Manual testing with Postman
-
 Reviewers: alice, bob
 ```
 
@@ -104,11 +91,6 @@ Reviewers: alice, bob
 Add user authentication
 
 Implements JWT-based authentication for the API.
-
-Test Plan:
-- Unit tests for auth module  
-- Integration tests for login flow
-- Manual testing with Postman
 
 Reviewers: alice, bob
 
@@ -120,11 +102,6 @@ Pull Request: https://github.com/example/api/pull/456
 Add user authentication
 
 Implements JWT-based authentication for the API.
-
-Test Plan:
-- Unit tests for auth module
-- Integration tests for login flow  
-- Manual testing with Postman
 
 Reviewers: alice, bob
 
@@ -142,9 +119,6 @@ Pull Request: https://github.com/example/api/pull/456
    # In .jj/repo/config.toml
    [templates]
    draft_commit_description = '''
-   
-
-   Test Plan:
    
 
    Reviewers:

@@ -212,7 +212,7 @@ async fn diff_impl(
     }
 
     if local_commit.pull_request_number.is_none() || opts.update_message {
-        validate_commit_message(message, config)?;
+        validate_commit_message(message)?;
     }
 
     if let Some(ref pull_request) = pull_request {
@@ -670,7 +670,6 @@ mod tests {
             "origin".into(),
             "main".into(),
             "spr/test/".into(),
-            false,
             false,
         )
     }

@@ -143,7 +143,6 @@ pub async fn spr() -> Result<()> {
     let branch_prefix = get_config_value("spr.branchPrefix", &git_config)
         .ok_or_else(|| Error::new("spr.branchPrefix must be configured".to_string()))?;
     let require_approval = get_config_bool("spr.requireApproval", &git_config).unwrap_or(false);
-    let require_test_plan = get_config_bool("spr.requireTestPlan", &git_config).unwrap_or(true);
 
     let config = jj_spr::config::Config::new(
         github_owner,
@@ -152,7 +151,6 @@ pub async fn spr() -> Result<()> {
         github_master_branch,
         branch_prefix,
         require_approval,
-        require_test_plan,
     );
 
     let jj = jj_spr::jj::Jujutsu::new(repo)
