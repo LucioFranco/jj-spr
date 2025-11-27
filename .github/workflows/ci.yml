@@ -30,9 +30,9 @@ jobs:
           sudo apt-get install -y pkg-config libssl-dev
 
       - name: Install jj
-        run: |
-          cargo install cargo-binstall
-          cargo binstall --no-confirm --strategies crate-meta-data jj-cli
+        uses: taiki-e/install-action@v2
+        with:
+          tool: jj-cli
 
       - name: Cache dependencies
         uses: Swatinem/rust-cache@v2
