@@ -79,7 +79,7 @@ The codebase follows a library + binary structure:
 - **`spr/src/git.rs`**: Git operations via `git2` crate (branch management, commit creation)
 - **`spr/src/github.rs`**: GitHub API client (PR creation/updates, GraphQL queries)
 - **`spr/src/config.rs`**: Configuration management (reads from git config)
-- **`spr/src/message.rs`**: Commit message parsing and formatting (Test Plan, Summary, etc.)
+- **`spr/src/message.rs`**: Commit message parsing and formatting (Summary, Reviewers, etc.)
 - **`spr/src/revision_utils.rs`**: Revision parsing and resolution
 - **`spr/src/output.rs`**: Terminal output formatting
 - **`spr/src/error.rs`**: Error types and handling
@@ -90,7 +90,7 @@ The codebase follows a library + binary structure:
 
 2. **Stacked PR handling**: When creating stacked PRs, the tool creates intermediate branches for each change in the stack. The base branch of PR #2 points to the PR branch of PR #1, allowing independent reviews and landing.
 
-3. **Commit message structure**: Commit messages are parsed into sections (Summary, Test Plan, etc.) which are stored in both the local Jujutsu change and the GitHub PR. The tool maintains bidirectional sync.
+3. **Commit message structure**: Commit messages are parsed into sections (Summary, Reviewers, etc.) which are stored in both the local Jujutsu change and the GitHub PR. The tool maintains bidirectional sync.
 
 4. **Git/Jujutsu bridge**: While Jujutsu is the primary interface, the tool uses Git operations under the hood for branch creation and pushing to GitHub, since GitHub only understands Git.
 
@@ -154,6 +154,5 @@ Stored in git config under `spr.*` namespace:
 - `spr.githubRepository` - Owner/repo name
 - `spr.branchPrefix` - Prefix for generated branches (default: `spr/`)
 - `spr.requireApproval` - Require PR approval before landing
-- `spr.requireTestPlan` - Require "Test Plan:" section in commits
 - `spr.githubHost` - Custom GitHub Enterprise host
 - `spr.githubToken` - GitHub API token (typically stored via `jj spr init`)

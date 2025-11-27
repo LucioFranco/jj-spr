@@ -17,7 +17,6 @@ pub struct Config {
     pub master_ref: GitHubBranch,
     pub branch_prefix: String,
     pub require_approval: bool,
-    pub require_test_plan: bool,
 }
 
 impl Config {
@@ -28,7 +27,6 @@ impl Config {
         master_branch: String,
         branch_prefix: String,
         require_approval: bool,
-        require_test_plan: bool,
     ) -> Self {
         let master_ref =
             GitHubBranch::new_from_branch_name(&master_branch, &remote_name, &master_branch);
@@ -39,7 +37,6 @@ impl Config {
             master_ref,
             branch_prefix,
             require_approval,
-            require_test_plan,
         }
     }
 
@@ -232,7 +229,6 @@ mod tests {
             "master".into(),
             "spr/foo/".into(),
             false,
-            true,
         )
     }
 

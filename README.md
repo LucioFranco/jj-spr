@@ -85,9 +85,7 @@ The recommended workflow keeps an empty working copy (`@`) with PR changes at `@
 # 1. Create a change
 jj new main@origin
 echo "new feature" > feature.txt
-jj describe -m "Add new feature
-
-Test Plan: Tested locally"
+jj describe -m "Add new feature"
 
 # 2. Move to empty working copy
 jj new  # Your PR change is now at @-
@@ -186,9 +184,6 @@ git config spr.branchPrefix "yourname/spr/"
 
 # Require approval before landing
 git config spr.requireApproval true
-
-# Require test plan in commit messages
-git config spr.requireTestPlan true
 ```
 
 ## Requirements

@@ -73,7 +73,7 @@ pub async fn amend(
             commit.message = pull_request.sections;
             commit.message_changed = true;
         }
-        failure = validate_commit_message(&commit.message, config).is_err() || failure;
+        failure = validate_commit_message(&commit.message).is_err() || failure;
     }
     jj.rewrite_commit_messages(&mut pc)?;
 

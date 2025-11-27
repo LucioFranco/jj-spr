@@ -87,7 +87,6 @@ fn test_config_readable_in_secondary_workspace() {
     set_config_for_test(&main_repo_path, "spr.githubRemoteName", "origin");
     set_config_for_test(&main_repo_path, "spr.githubMasterBranch", "main");
     set_config_for_test(&main_repo_path, "spr.requireApproval", "false");
-    set_config_for_test(&main_repo_path, "spr.requireTestPlan", "true");
 
     // Verify config is readable from main workspace
     assert_eq!(
@@ -137,11 +136,6 @@ fn test_config_readable_in_secondary_workspace() {
     assert_eq!(
         get_jj_config(&workspace2_path, "spr.requireApproval"),
         Some("false".to_string()),
-        "Config should be readable from secondary workspace"
-    );
-    assert_eq!(
-        get_jj_config(&workspace2_path, "spr.requireTestPlan"),
-        Some("true".to_string()),
         "Config should be readable from secondary workspace"
     );
 }
