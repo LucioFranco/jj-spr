@@ -85,7 +85,7 @@ pub async fn init() -> Result<()> {
         pat
     };
 
-    let octocrab = octocrab::OctocrabBuilder::new()
+    let octocrab = octocrab::OctocrabBuilder::default()
         .personal_token(pat.clone())
         .build()?;
     let github_user = octocrab.current().user().await?;

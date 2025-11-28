@@ -166,7 +166,11 @@ pub async fn spr() -> Result<()> {
             .ok_or_else(|| Error::new("GitHub auth token must be configured".to_string()))?,
     };
 
-    octocrab::initialise(octocrab::Octocrab::builder().personal_token(github_auth_token.clone()))?;
+    octocrab::initialise(
+        octocrab::OctocrabBuilder::default()
+            .personal_token(github_auth_token.clone())
+            .build()?,
+    );
 
     let mut headers = header::HeaderMap::new();
     headers.insert(header::ACCEPT, "application/json".parse()?);
