@@ -155,7 +155,7 @@ pub async fn init() -> Result<()> {
     // Master branch name (just query GitHub)
 
     let github_repo_info = octocrab
-        .get::<octocrab::models::Repository, _, _>(format!("repos/{}", &github_repo), None::<&()>)
+        .get::<octocrab::models::Repository, _, _>(format!("/repos/{}", &github_repo), None::<&()>)
         .await?;
 
     set_jj_config(
