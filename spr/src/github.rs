@@ -373,7 +373,7 @@ impl GitHub {
         octocrab::instance()
             .patch::<octocrab::models::pulls::PullRequest, _, _>(
                 format!(
-                    "repos/{}/{}/pulls/{}",
+                    "/repos/{}/{}/pulls/{}",
                     self.config.owner, self.config.repo, number
                 ),
                 Some(&updates),
@@ -393,7 +393,7 @@ impl GitHub {
         let _: Ignore = octocrab::instance()
             .post(
                 format!(
-                    "repos/{}/{}/pulls/{}/requested_reviewers",
+                    "/repos/{}/{}/pulls/{}/requested_reviewers",
                     self.config.owner, self.config.repo, number
                 ),
                 Some(&reviewers),
