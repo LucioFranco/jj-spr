@@ -55,34 +55,38 @@
           formatter = config.treefmt.build.wrapper;
           checks.formatting = config.treefmt.build.check self;
 
-          packages.default = pkgs.rustPlatform.buildRustPackage {
-            pname = "jj-spr";
-            version = "1.3.6-beta.1";
+          packages.default =
+            let
+              cargoToml = builtins.fromTOML (builtins.readFile ./spr/Cargo.toml);
+            in
+            pkgs.rustPlatform.buildRustPackage {
+              pname = cargoToml.package.name;
+              version = cargoToml.package.version;
 
-            src = ./.;
+              src = ./.;
 
-            cargoLock = {
-              lockFile = ./Cargo.lock;
+              cargoLock = {
+                lockFile = ./Cargo.lock;
+              };
+
+              buildInputs = with pkgs; [
+                openssl
+                zlib
+              ];
+
+              nativeBuildInputs = with pkgs; [
+                pkg-config
+                git
+                jujutsu
+              ];
+
+              meta = with pkgs.lib; {
+                description = "Jujutsu subcommand for submitting pull requests for individual, amendable, rebaseable commits to GitHub";
+                homepage = "https://github.com/LucioFranco/spr";
+                license = licenses.mit;
+                maintainers = [ ];
+              };
             };
-
-            buildInputs = with pkgs; [
-              openssl
-              zlib
-            ];
-
-            nativeBuildInputs = with pkgs; [
-              pkg-config
-              git
-              jujutsu
-            ];
-
-            meta = with pkgs.lib; {
-              description = "Jujutsu subcommand for submitting pull requests for individual, amendable, rebaseable commits to GitHub";
-              homepage = "https://github.com/LucioFranco/spr";
-              license = licenses.mit;
-              maintainers = [ ];
-            };
-          };
 
           pre-commit = {
             check.enable = true;
