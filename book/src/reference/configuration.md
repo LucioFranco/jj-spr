@@ -125,8 +125,8 @@ label(if(current_working_copy, "bold"),
       label("cyan", change_id.shortest(8)),
       label("magenta", if(description, description.first_line(), "(no description)"))
     ),
-    if(description.regex("Pull Request: .*(#\\d+)"),
-      label("green", " " ++ description.regex("Pull Request: .*(#\\d+)")))
+    if(description.match("Pull Request: .*(#\\d+)"),
+      label("green", " " ++ description.match("Pull Request: .*(#\\d+)")))
   )
 )
 '''
